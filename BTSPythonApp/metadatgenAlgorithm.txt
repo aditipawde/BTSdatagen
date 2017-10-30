@@ -1,0 +1,60 @@
+algorithm	generate_company_metadata
+input	N (number of companies), industry_sectors (list of industry_sectors), 
+		p_industry_sectors (sectorwise probability distribution of comapnies), bsr_categorization,
+		locations, p_locations (location distribution), p_tax_haven (tax haven distribution), 
+		p_num_owners (number of owners distribution), employee_base categorization distribution,
+		rev_per_month_per_employee categorization distribution
+output	dataset D containing information about comapnies
+
+Generate simple attributes (id, location, industry sector, num_owners, emp_base_category, bsr_category, is_tax_haven) 
+for N companies
+
+// Employee base geneartion
+Genearte category-wise distributon of number of employees with stochastic mean and standard deviation
+// RV X (takes mean and std. dev. wrt emp_base category)
+VERY SMALL	: e_mu1, e_sigma1 = 30, 7
+SMALL		: e_mu2, e_sigma2 = 200, 50
+MEDIUM		: e_mu3, e_sigma3 = 1600, 400
+HIGH		: e_mu4, e_sigma4 = 8500, 2125
+VERY LARGE	: e_mu5, e_sigma5 = 32000, 8000
+EXTRA LARGE	: e_mu6, e_sigma6 = 98000, 24500
+
+// RV Y (for generating stochastic std. dev. based on X)
+Y = N(0.1 * X, 0.01 * X)
+
+// RV Z (for generating emp_base based on X and Y)
+Z = N (X, Y) // Choose values of Z based for emp_base category for a company
+
+// Annual revenue generation
+Generate category-wise rev/month/employee  
+
+// RV X (takes mean and std. dev. wrt rev/month/employee category)
+VERY LOW	: mu1, sigma1 = 20000, 4000
+LOW			: mu2, sigma2 = 70000, 14000
+MEDIUM		: mu3, sigma3 = 150000, 15000
+HIGH		: mu4, sigma4 = 250000, 25000
+VERY HIGH	: mu5, sigma5 = 550000, 40000
+EXTRA HIGH	: mu6, sigma6 = 800000, 65000
+
+// RV Y (for generating stochastic std. dev. based on X)
+Y = N(0.1 * X, 0.01 * X)
+
+// RV Z (for generating rev/month/employee based on X and Y)
+Z = N (X, Y) // Choose values of Z based for rev/month/employee category for a company
+
+Generate annual_revenue of each company 
+annual_revenue = 12 * num_employees * value of Z for a company 
+
+// Net revenue generation
+select a company in profit (loss) with probability 0.8 (0.2).
+Select percenatge p of profit (loss) uniform(1, 20) (uniform (-1, 20))
+net_revenue = annual_revenue * p
+
+
+for every comapny c do
+	generate attributes (comp_id, industry_sector, is_taxhaven, location, num_owners, is_private, 
+			emp_base, rev/month/employee_category, bsr_category, annual_revenue, net_revenue)
+	Insert c in D
+end for
+
+return D

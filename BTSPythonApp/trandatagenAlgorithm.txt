@@ -1,0 +1,78 @@
+algorithm	generate_banking_tran_data
+input		company metadata D
+output		dataset T (tran_id, from_acc, to_acc, mode, amount, date) with transactions of all companies
+
+Define normal distributions used for transactional data generation
+
+N1(5000, 1000), N2(50000, 10000), N3(500000, 100000), N4(5000000, 1000000), N5(50000000, 10000000)
+N = number of companies in D
+
+Prepare account details for home_bank(acc_no, acc_type, cust_type, comp_id, balance) for all companies
+	-- acc_no starts from 0
+	-- acc_type : 90% current, 10% savings
+	-- cust_type: 'C' for company
+	-- comp_id: if cust_type is 'C' this field contains comp_id else blank
+	-- initial balance is randomly selected from mixture of N3 and N4
+
+Prepare account details outside_bank(acc_no, acc_type, cust_type, comp_id, balance) for customers outside bank
+	-- acc_no starts from N
+	-- acc_type : 10% current, 90% savings
+	-- cust_type: 'I' for individual
+	-- comp_id: if cust_type is 'C' this field contains comp_id else blank
+	-- initial balance is randomly selected from mixture of N1, N2 and N3
+
+for comapany c in D do
+	c_catgeory = c.bsr_category
+
+	if c_category is 'b':
+		n_customers = uniform (10, 60)
+		cust_list = 75% customers from home_bank, 25% from outside_bank
+
+		while (c.annual_revenue is not reached) do
+			select a customer cust from cust_list
+			select amt = random choice from mixture of N4 and N5
+			if cust is from home_bank and cust.expenses not reached and cust.balance > 0
+				add record to T with from_acc = cust, to_acc = c, amount = amt, 
+				mode = randomly selected from {'CASH', 'CHEQUE', 'TRANSFER'} with probabilities [0.25, 0.5, 0.25]
+				date = NaN
+
+			else
+				add record to T with from_acc = cust, to_acc = c, amount = amt, 
+				mode = randomly selected from {'CASH', 'CHEQUE', 'TRANSFER'} with probabilities [0.25, 0.5, 0.25]
+				date = NaN
+
+	if c_category is 's':
+		n_customers = uniform (61, 1000)
+		cust_list = 50% customers from home_bank, 50% from outside_bank
+
+		while (c.annual_revenue is not reached) do
+			select a customer cust from cust_list
+			select amt = random choice from mixture of N2, N3 and N4
+			if cust is from home_bank and cust.expenses not reached and cust.balance > 0
+				add record to T with from_acc = cust, to_acc = c, amount = amt, 
+				mode = randomly selected from {'CASH', 'CHEQUE', 'TRANSFER'} with probabilities [0.25, 0.5, 0.25]
+				date = NaN
+			else
+				add record to T with from_acc = cust, to_acc = c, amount = amt, 
+				mode = randomly selected from {'CASH', 'CHEQUE', 'TRANSFER'} with probabilities [0.25, 0.5, 0.25]
+				date = NaN
+
+	if c_category is 'r':
+		n_customers = uniform (1001, 10000)
+		cust_list = 25% customers from home_bank, 75% from outside_bank
+
+		while (c.annual_revenue is not reached) do
+			select a customer cust from cust_list
+			select amt = random choice from mixture of N1, N2, N3 and N4
+			if cust is from home_bank and cust.expenses not reached and cust.balance > 0
+				add record to T with from_acc = cust, to_acc = c, amount = amt, 
+				mode = randomly selected from {'CASH', 'CHEQUE', 'TRANSFER'} with probabilities [0.4, 0.2, 0.4]
+				date = NaN
+			else
+				add record to T with from_acc = cust, to_acc = c, amount = amt, 
+				mode = randomly selected from {'CASH', 'CHEQUE', 'TRANSFER'} with probabilities [0.4, 0.2, 0.4]
+				date = NaN
+	
+	assign date to all transaction uniform (1, 365)
+
+end for
